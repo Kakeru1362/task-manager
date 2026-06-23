@@ -25,7 +25,7 @@ export function FilterBar({
   return (
     <div className="filter-bar">
       <select value={filters.ownerId} onChange={(e) => onChange({ ...filters, ownerId: e.target.value })}>
-        <option value="">👥 全メンバー</option>
+        <option value="">全メンバー</option>
         {data.users.map((u) => (
           <option key={u.id} value={u.id}>
             {u.name}
@@ -53,7 +53,7 @@ export function FilterBar({
         onClick={() => onChange({ ...filters, discussionOnly: !filters.discussionOnly })}
         aria-pressed={filters.discussionOnly}
       >
-        🗣 要相談だけ
+        要相談だけ
       </button>
     </div>
   )

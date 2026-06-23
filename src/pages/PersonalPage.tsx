@@ -59,7 +59,7 @@ export function PersonalPage() {
 
       {totalDiscussion > 0 && (
         <div className="discussion-banner">
-          🗣 要相談 {totalDiscussion}件 — 定例会で討論しましょう
+          要相談 {totalDiscussion}件 — 定例会で討論しましょう
           {visibleDiscussion !== totalDiscussion && <span className="small">（表示中 {visibleDiscussion}件）</span>}
         </div>
       )}

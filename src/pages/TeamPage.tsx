@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { useApp } from '../state/AppContext'
 import * as repo from '../store/repositories'
-import { Breadcrumb, type Crumb } from '../components/Breadcrumb'
-import { ProjectList } from '../components/ProjectList'
-import { CategoryList } from '../components/CategoryList'
-import { GoalList } from '../components/GoalList'
-import { GoalDetail } from '../components/GoalDetail'
+import { newId } from '../lib/id'
+import { projectSchema } from '../lib/validation'
+import { ProjectPanel } from '../components/ProjectPanel'
 import { Modal } from '../components/Modal'
 import { TaskForm, type TaskFormValues } from '../components/TaskForm'
 import { TaskDetail } from '../components/TaskDetail'
@@ -13,41 +11,30 @@ import type { ID } from '../types/models'
 
 export function TeamPage() {
   const { data, apply } = useApp()
-  const [projectId, setProjectId] = useState<ID | null>(null)
-  const [categoryId, setCategoryId] = useState<ID | null>(null)
-  const [goalId, setGoalId] = useState<ID | null>(null)
-  const [showAddTask, setShowAddTask] = useState(false)
+  const [openProjectId, setOpenProjectId] = useState<ID | null>(null)
+  const [addingProject, setAddingProject] = useState(false)
+  const [projName, setProjName] = useState('')
+  const [projErr, setProjErr] = useState('')
+  const [addTaskGoalId, setAddTaskGoalId] = useState<ID | null>(null)
   const [openTaskId, setOpenTaskId] = useState<ID | null>(null)
   const [editing, setEditing] = useState(false)
 
-  const project = repo.projectById(data, projectId ?? undefined)
-  const category = repo.categoryById(data, categoryId ?? undefined)
-  const goal = repo.goalById(data, goalId ?? undefined)
   const openTask = openTaskId ? (data.personalTasks.find((t) => t.id === openTaskId) ?? null) : null
 
-  const resetToRoot = () => {
-    setProjectId(null)
-    setCategoryId(null)
-    setGoalId(null)
+  const addProject = () => {
+    const parsed = projectSchema.safeParse({ name: projName })
+    if (!parsed.success) {
+      setProjErr(parsed.error.issues[0]?.message ?? '案件名を入力してください')
+      return
+    }
+    const id = newId()
+    apply((d) => repo.addProject(d, { id, name: projName.trim() }))
+    setProjName('')
+    setAddingProject(false)
+    setProjErr('')
+    setOpenProjectId(id) // 作成した案件を開く
   }
 
-  const crumbs: Crumb[] = [{ label: 'チーム', onClick: resetToRoot }]
-  if (project)
-    crumbs.push({
-      label: project.name,
-      onClick: () => {
-        setCategoryId(null)
-        setGoalId(null)
-      },
-    })
-  if (category) crumbs.push({ label: category.name, onClick: () => setGoalId(null) })
-  if (goal) crumbs.push({ label: goal.title })
-  const crumbItems = crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label } : c))
-
-  const addTask = (v: TaskFormValues) => {
-    apply((d) => repo.addPersonalTask(d, { ...v }))
-    setShowAddTask(false)
-  }
   const saveEdit = (v: TaskFormValues) => {
     if (!openTask) return
     apply((d) => repo.updatePersonalTask(d, openTask.id, { ...v }))
@@ -61,25 +48,87 @@ export function TeamPage() {
 
   return (
     <div className="page">
-      <Breadcrumb items={crumbItems} />
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">チーム / 案件</h1>
+          <div className="page-sub">案件を選ぶと、その場でカテゴリ・ゴール・個人タスクが開きます</div>
+        </div>
+      </div>
 
-      {!project && <ProjectList onOpen={setProjectId} />}
-      {project && !category && <CategoryList projectId={project.id} onOpen={setCategoryId} />}
-      {project && category && !goal && (
-        <GoalList projectId={project.id} categoryId={category.id} onOpen={setGoalId} />
-      )}
-      {goal && (
-        <GoalDetail
-          goalId={goal.id}
-          onAddTask={() => setShowAddTask(true)}
-          onOpenTask={setOpenTaskId}
-          onDeleted={() => setGoalId(null)}
-        />
-      )}
+      <div className="project-list">
+        {data.projects.map((p) => {
+          const open = openProjectId === p.id
+          const goalCount = data.goalTasks.filter((g) => g.projectId === p.id).length
+          const taskCount = data.personalTasks.filter(
+            (t) => repo.goalById(data, t.goalTaskId)?.projectId === p.id,
+          ).length
+          return (
+            <div key={p.id} className={`project-item ${open ? 'open' : ''}`}>
+              <button
+                className={`project-row ${open ? 'open' : ''}`}
+                onClick={() => setOpenProjectId(open ? null : p.id)}
+                aria-expanded={open}
+              >
+                <span className="chev" />
+                <span>
+                  <span className="project-name">{p.name}</span>
+                  {p.description && <span className="project-desc"> — {p.description}</span>}
+                </span>
+                <span className="project-meta">
+                  ゴール {goalCount} ／ タスク {taskCount}
+                </span>
+              </button>
+              {open && (
+                <ProjectPanel project={p} onOpenTask={setOpenTaskId} onAddTask={setAddTaskGoalId} />
+              )}
+            </div>
+          )
+        })}
 
-      {showAddTask && goal && (
-        <Modal title="個人タスクを追加" onClose={() => setShowAddTask(false)} width={560}>
-          <TaskForm defaultGoalId={goal.id} onSubmit={addTask} onCancel={() => setShowAddTask(false)} />
+        {addingProject ? (
+          <div className="inline-add">
+            <input
+              value={projName}
+              aria-label="案件名"
+              placeholder="案件名（例：C社案件）"
+              autoFocus
+              onChange={(e) => setProjName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') addProject()
+                if (e.key === 'Escape') setAddingProject(false)
+              }}
+            />
+            <button className="btn primary sm" onClick={addProject}>
+              追加
+            </button>
+            <button
+              className="btn ghost sm"
+              onClick={() => {
+                setAddingProject(false)
+                setProjErr('')
+              }}
+            >
+              取消
+            </button>
+            {projErr && <span className="error-text">{projErr}</span>}
+          </div>
+        ) : (
+          <button className="btn dashed" onClick={() => setAddingProject(true)}>
+            ＋ 案件を追加
+          </button>
+        )}
+      </div>
+
+      {addTaskGoalId && (
+        <Modal title="個人タスクを追加" onClose={() => setAddTaskGoalId(null)} width={560}>
+          <TaskForm
+            defaultGoalId={addTaskGoalId}
+            onSubmit={(v) => {
+              apply((d) => repo.addPersonalTask(d, { ...v }))
+              setAddTaskGoalId(null)
+            }}
+            onCancel={() => setAddTaskGoalId(null)}
+          />
         </Modal>
       )}
 

@@ -29,7 +29,7 @@ export function NotificationBell() {
         aria-label="通知"
         aria-expanded={open}
       >
-        🔔
+        通知
         {unread > 0 && <span className="badge">{unread}</span>}
       </button>
       {open && (

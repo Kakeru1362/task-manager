@@ -13,7 +13,7 @@ export function DiscussionFlag({ active, onToggle }: DiscussionFlagProps) {
       title="要相談（定例会で討論）"
       aria-pressed={active}
     >
-      {active ? '🗣 要相談中' : '要相談にする'}
+      {active ? '要相談を解除' : '要相談にする'}
     </button>
   )
 }

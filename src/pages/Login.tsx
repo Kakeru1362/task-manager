@@ -21,7 +21,7 @@ export function Login() {
   return (
     <div className="login">
       <div className="login-card">
-        <h1>📋 チームタスク管理</h1>
+        <h1>チームタスク管理</h1>
         <p className="muted">あなたを選んでください</p>
         <div className="user-grid">
           {data.users.map((u) => (

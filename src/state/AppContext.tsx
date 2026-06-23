@@ -108,7 +108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return next
     })
-    notify(`:eyes: レビュー依頼：「${task.title}」→ ${reviewer?.name ?? ''}さん`)
+    notify(`レビュー依頼：「${task.title}」→ ${reviewer?.name ?? ''}さん`)
   }
 
   const setReviewStatus = (taskId: ID, status: ReviewStatus) => {
@@ -147,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return next
     })
-    if (turningOn) notify(`:speech_balloon: 要相談：「${task.title}」を定例会で討論しましょう`)
+    if (turningOn) notify(`要相談：「${task.title}」を定例会で討論しましょう`)
   }
 
   const comment = (taskId: ID, taskType: TaskRefType, body: string) => {
@@ -167,7 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return next
     })
-    if (task && notifyOwner) notify(`:memo: コメント（${currentUser.name}）「${task.title}」：${body}`)
+    if (task && notifyOwner) notify(`コメント（${currentUser.name}）「${task.title}」：${body}`)
   }
 
   const markNotificationsRead = () => {

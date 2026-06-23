@@ -16,7 +16,7 @@ import { newId } from '../lib/id'
 
 // すべてイミュータブル: 新しい AppData を返す。
 
-const PALETTE = ['#5BC0EB', '#F5853F', '#7AC74F', '#9B8BF4', '#EFC050', '#E5736A']
+const PALETTE = ['#e07b39', '#c4453c', '#b07a44', '#d39a52', '#9c5b34', '#7d5a44']
 
 export function pickColor(index: number): string {
   return PALETTE[index % PALETTE.length]
@@ -34,9 +34,12 @@ export function addUser(data: AppData, name: string): AppData {
 }
 
 // ---- Project ----
-export function addProject(data: AppData, input: { name: string; description?: string }): AppData {
+export function addProject(
+  data: AppData,
+  input: { id?: ID; name: string; description?: string },
+): AppData {
   const project: Project = {
-    id: newId(),
+    id: input.id ?? newId(),
     name: input.name,
     description: input.description,
     color: pickColor(data.projects.length),

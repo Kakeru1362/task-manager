@@ -23,19 +23,19 @@ function Shell() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="brand">📋 チームタスク管理</div>
+        <div className="brand">チームタスク管理</div>
         <nav className="tabs">
           <button className={tab === 'team' ? 'active' : ''} onClick={() => setTab('team')}>
-            ① チーム / 案件
+            チーム / 案件
           </button>
           <button className={tab === 'personal' ? 'active' : ''} onClick={() => setTab('personal')}>
-            ② 個人タスク
+            個人タスク
           </button>
         </nav>
         <div className="header-right">
           <NotificationBell />
           <button className="icon-btn" onClick={() => setShowSettings(true)} aria-label="設定">
-            ⚙️
+            設定
           </button>
           <div className="user-switch" ref={userSwitchRef}>
             <button

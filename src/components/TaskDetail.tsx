@@ -41,7 +41,7 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
 
       {goal && (
         <div className="muted small">
-          🎯 {project?.name} / {category?.name} / {goal.title}
+          {project?.name} / {category?.name} / {goal.title}
         </div>
       )}
       {task.description && <p className="detail-desc">{task.description}</p>}

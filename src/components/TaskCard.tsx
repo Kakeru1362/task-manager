@@ -15,7 +15,7 @@ export function TaskCard({ task, onClick }: { task: PersonalTask; onClick: () =>
 
   return (
     <button className={`task-card ${task.needsDiscussion ? 'flagged' : ''}`} onClick={onClick}>
-      {task.needsDiscussion && <div className="flag-ribbon">🗣 要相談</div>}
+      {task.needsDiscussion && <div className="flag-ribbon">要相談</div>}
       <div className="task-card-head">
         <span className="avatar sm" style={{ background: owner?.color }}>
           {owner?.name?.[0] ?? '?'}
@@ -26,7 +26,7 @@ export function TaskCard({ task, onClick }: { task: PersonalTask; onClick: () =>
       <div className="task-title">{task.title}</div>
       {goal && (
         <div className="task-goal muted small">
-          🎯 {project?.name} / {goal.title}
+          {project?.name} / {goal.title}
         </div>
       )}
       <ProgressBar value={task.progress} />

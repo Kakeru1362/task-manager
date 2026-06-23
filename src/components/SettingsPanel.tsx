@@ -21,7 +21,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
 
   const test = async () => {
     if (!canTest) return
-    await sendSlackMessage(trimmed, ':white_check_mark: チームタスク管理：テスト送信です')
+    await sendSlackMessage(trimmed, 'チームタスク管理：テスト送信です')
     setTested(true)
   }
 
@@ -53,7 +53,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           <button className="btn" onClick={test} disabled={!canTest}>
             テスト送信
           </button>
-          {saved && <span className="saved-text">保存しました ✓</span>}
+          {saved && <span className="saved-text">保存しました</span>}
           {tested && <span className="saved-text">送信しました（Slack側でご確認ください）</span>}
         </div>
       </section>

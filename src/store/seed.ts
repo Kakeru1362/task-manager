@@ -6,15 +6,15 @@ import { addDaysISO } from '../lib/date'
 export function seedData(): AppData {
   const now = Date.now()
 
-  const tanaka = { id: newId(), name: '田中', color: '#5BC0EB', createdAt: now }
-  const sato = { id: newId(), name: '佐藤', color: '#F5853F', createdAt: now }
-  const suzuki = { id: newId(), name: '鈴木', color: '#7AC74F', createdAt: now }
+  const tanaka = { id: newId(), name: '田中', color: '#e07b39', createdAt: now }
+  const sato = { id: newId(), name: '佐藤', color: '#c4453c', createdAt: now }
+  const suzuki = { id: newId(), name: '鈴木', color: '#b07a44', createdAt: now }
 
   const a = {
     id: newId(),
     name: 'A社案件',
     description: '新規顧客向けキャンペーン',
-    color: '#5BC0EB',
+    color: '#e07b39',
     archived: false,
     createdAt: now,
   }
@@ -22,15 +22,15 @@ export function seedData(): AppData {
     id: newId(),
     name: 'B社案件',
     description: 'ECサイトリニューアル',
-    color: '#F5853F',
+    color: '#b07a44',
     archived: false,
     createdAt: now,
   }
 
-  // カテゴリは案件ごとに持つ（ディレクトリ型ドリルダウン）
-  const mkt = { id: newId(), projectId: a.id, name: 'マーケティング', color: '#5BC0EB' }
-  const sales = { id: newId(), projectId: a.id, name: '営業', color: '#F5853F' }
-  const dev = { id: newId(), projectId: b.id, name: '開発', color: '#7A5FCC' }
+  // カテゴリは案件ごとに持つ
+  const mkt = { id: newId(), projectId: a.id, name: 'マーケティング', color: '#e07b39' }
+  const sales = { id: newId(), projectId: a.id, name: '営業', color: '#c4453c' }
+  const dev = { id: newId(), projectId: b.id, name: '開発', color: '#9c5b34' }
 
   const g1 = {
     id: newId(),
