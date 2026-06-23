@@ -10,7 +10,7 @@ import { FilterBar, emptyFilters, type PersonalFilters } from '../components/Fil
 import type { ID } from '../types/models'
 
 export function PersonalPage() {
-  const { data, apply } = useApp()
+  const { data, apply, createPersonalTask } = useApp()
   const [filters, setFilters] = useState<PersonalFilters>(emptyFilters)
   const [showAdd, setShowAdd] = useState(false)
   const [openTaskId, setOpenTaskId] = useState<ID | null>(null)
@@ -34,7 +34,7 @@ export function PersonalPage() {
   const visibleDiscussion = visible.filter((t) => t.needsDiscussion).length
 
   const addTask = (v: TaskFormValues) => {
-    apply((d) => repo.addPersonalTask(d, { ...v }))
+    createPersonalTask({ ...v })
     setShowAdd(false)
   }
   const saveEdit = (v: TaskFormValues) => {

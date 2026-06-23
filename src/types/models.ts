@@ -62,6 +62,8 @@ export interface PersonalTask {
   goalTaskId?: ID
   title: string
   description?: string
+  deliverable?: string // 納品形式（何をもって完了か）
+  outputLink?: string // 成果物リンク（作業中/完成物のURL）
   period: Period
   priority: Priority
   progress: number // 0-100 達成度
@@ -69,7 +71,8 @@ export interface PersonalTask {
   reviewerId?: ID
   reviewStatus: ReviewStatus
   needsDiscussion: boolean // 要相談フラグ（上位浮上）
-  schedule?: Schedule
+  acknowledged?: boolean // 受領（着手合意）したか
+  schedule?: Schedule // 取り組み予定
   createdAt: number
   updatedAt: number
 }
@@ -87,6 +90,9 @@ export interface Comment {
 
 export type NotificationType =
   | 'due_soon'
+  | 'assigned'
+  | 'acknowledged'
+  | 'scheduled'
   | 'review_requested'
   | 'review_result'
   | 'comment'
@@ -102,6 +108,27 @@ export interface AppNotification {
   createdAt: number
 }
 
+export type ActivityType =
+  | 'created'
+  | 'acknowledged'
+  | 'scheduled'
+  | 'progress'
+  | 'review_requested'
+  | 'approved'
+  | 'changes'
+  | 'completed'
+  | 'comment'
+
+// タスクの行動履歴（誰が・いつ・何をしたか）
+export interface Activity {
+  id: ID
+  taskId: ID
+  actorId: ID
+  type: ActivityType
+  detail?: string
+  createdAt: number
+}
+
 export interface AppData {
   users: User[]
   projects: Project[]
@@ -110,4 +137,5 @@ export interface AppData {
   personalTasks: PersonalTask[]
   comments: Comment[]
   notifications: AppNotification[]
+  activities: Activity[]
 }

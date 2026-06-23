@@ -13,6 +13,7 @@ function dataWithDueSoonTask(): AppData {
     personalTasks: [],
     comments: [],
     notifications: [],
+    activities: [],
   }
   d = repo.addPersonalTask(d, {
     ownerId: 'owner-1',

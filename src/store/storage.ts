@@ -21,6 +21,7 @@ function normalizeAppData(raw: unknown): AppData {
     personalTasks: asArray(r.personalTasks),
     comments: asArray(r.comments),
     notifications: asArray(r.notifications),
+    activities: asArray(r.activities),
   }
 }
 

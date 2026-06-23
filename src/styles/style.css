@@ -846,6 +846,25 @@ textarea {
   border-radius: var(--radius-sm);
   padding: 0.9rem;
 }
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
 .detail-footer {
   border-top: 1px solid var(--border);
   padding-top: 0.9rem;

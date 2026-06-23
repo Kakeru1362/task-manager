@@ -9,6 +9,8 @@ export interface TaskFormValues {
   goalTaskId?: ID
   title: string
   description?: string
+  deliverable?: string
+  outputLink?: string
   period: Period
   priority: Priority
   progress: number
@@ -27,6 +29,8 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
   const { data, currentUser } = useApp()
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
+  const [deliverable, setDeliverable] = useState(initial?.deliverable ?? '')
+  const [outputLink, setOutputLink] = useState(initial?.outputLink ?? '')
   const [ownerId, setOwnerId] = useState<ID>(initial?.ownerId ?? currentUser?.id ?? data.users[0]?.id ?? '')
   const [goalTaskId, setGoalTaskId] = useState<string>(initial?.goalTaskId ?? defaultGoalId ?? '')
   const [priority, setPriority] = useState<Priority>(initial?.priority ?? 'medium')
@@ -66,6 +70,8 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
       goalTaskId: goalTaskId || undefined,
       title: title.trim(),
       description: description.trim() || undefined,
+      deliverable: deliverable.trim() || undefined,
+      outputLink: outputLink.trim() || undefined,
       period: { start: start || undefined, end: end || undefined },
       priority,
       progress,
@@ -84,6 +90,25 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
       <label className="field">
         <span>説明</span>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+      </label>
+
+      <label className="field">
+        <span>納品形式（何をもって完了か）</span>
+        <input
+          value={deliverable}
+          placeholder="例：ドキュメントにまとめてLINEで共有"
+          onChange={(e) => setDeliverable(e.target.value)}
+        />
+      </label>
+
+      <label className="field">
+        <span>成果物リンク（任意）</span>
+        <input
+          type="url"
+          value={outputLink}
+          placeholder="https://（ドキュメント／スプシ等のURL）"
+          onChange={(e) => setOutputLink(e.target.value)}
+        />
       </label>
 
       <div className="field-row">

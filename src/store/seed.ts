@@ -70,6 +70,7 @@ export function seedData(): AppData {
     goalTaskId: g1.id,
     title: '広告クリエイティブ3案作成',
     description: 'バナーA/Bテスト用',
+    deliverable: '3案をドキュメントにまとめてLINEで共有',
     period: { start: addDaysISO(-2), end: addDaysISO(2) },
     priority: 'high' as const,
     progress: 60,
@@ -85,6 +86,7 @@ export function seedData(): AppData {
     ownerId: sato.id,
     goalTaskId: g2.id,
     title: '提案資料のドラフト作成',
+    deliverable: '提案スライドを作成して共有',
     period: { start: addDaysISO(0), end: addDaysISO(5) },
     priority: 'medium' as const,
     progress: 20,
@@ -99,6 +101,7 @@ export function seedData(): AppData {
     ownerId: suzuki.id,
     goalTaskId: g3.id,
     title: 'トップページの実装',
+    deliverable: 'ステージングに反映してレビュー依頼',
     period: { start: addDaysISO(-5), end: addDaysISO(1) },
     priority: 'high' as const,
     progress: 80,
@@ -127,5 +130,6 @@ export function seedData(): AppData {
       },
     ],
     notifications: [],
+    activities: [],
   }
 }

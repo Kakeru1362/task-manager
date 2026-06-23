@@ -11,6 +11,7 @@ function emptyData(): AppData {
     personalTasks: [],
     comments: [],
     notifications: [],
+    activities: [],
   }
 }
 

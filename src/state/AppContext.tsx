@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { AppData, User, ID, ReviewStatus, TaskRefType } from '../types/models'
+import type { AppData, User, ID, ReviewStatus, TaskRefType, Schedule } from '../types/models'
 import {
   loadData,
   saveData,
@@ -28,6 +28,9 @@ interface AppContextValue {
   selectUser: (id: ID | null) => void
   createUser: (name: string) => void
   updateSlackWebhook: (url: string) => void
+  createPersonalTask: (input: repo.PersonalTaskInput) => void
+  acknowledge: (taskId: ID) => void
+  scheduleTask: (taskId: ID, schedule: Schedule) => void
   requestReview: (taskId: ID, reviewerId: ID) => void
   setReviewStatus: (taskId: ID, status: ReviewStatus) => void
   toggleDiscussion: (taskId: ID) => void
@@ -82,6 +85,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const operatorId = currentUser?.id
 
+  const createPersonalTask = (input: repo.PersonalTaskInput) => {
+    if (!currentUser) return
+    const id = newId()
+    const owner = data.users.find((u) => u.id === input.ownerId)
+    const notifyOwner = input.ownerId !== currentUser.id
+    setData((prev) => {
+      let next = repo.addPersonalTask(prev, { ...input, id })
+      next = repo.addActivity(next, { taskId: id, actorId: currentUser.id, type: 'created' })
+      if (notifyOwner) {
+        const note = makeNotification(
+          input.ownerId,
+          'assigned',
+          id,
+          `${currentUser.name}さんが「${input.title}」をあなたに追加しました`,
+        )
+        next = { ...next, notifications: [note, ...next.notifications] }
+      }
+      return next
+    })
+    if (notifyOwner) notify(`タスク追加：${currentUser.name} → ${owner?.name ?? ''}さん「${input.title}」`)
+  }
+
+  const acknowledge = (taskId: ID) => {
+    if (!currentUser) return
+    const task = data.personalTasks.find((t) => t.id === taskId)
+    if (!task || task.acknowledged) return
+    const notifyReviewer = Boolean(task.reviewerId && task.reviewerId !== currentUser.id)
+    setData((prev) => {
+      let next = repo.updatePersonalTask(prev, taskId, {
+        acknowledged: true,
+        status: task.status === 'todo' ? 'in_progress' : task.status,
+      })
+      next = repo.addActivity(next, { taskId, actorId: currentUser.id, type: 'acknowledged' })
+      if (task.reviewerId && notifyReviewer) {
+        const note = makeNotification(
+          task.reviewerId,
+          'acknowledged',
+          taskId,
+          `${currentUser.name}さんが「${task.title}」を受領しました（着手します）`,
+        )
+        next = { ...next, notifications: [note, ...next.notifications] }
+      }
+      return next
+    })
+    if (notifyReviewer) notify(`受領：${currentUser.name}さんが「${task.title}」に着手します`)
+  }
+
+  const scheduleTask = (taskId: ID, schedule: Schedule) => {
+    if (!currentUser) return
+    const task = data.personalTasks.find((t) => t.id === taskId)
+    if (!task) return
+    const detail = `${schedule.date}${schedule.startTime ? ' ' + schedule.startTime : ''}`
+    const notifyReviewer = Boolean(task.reviewerId && task.reviewerId !== currentUser.id)
+    setData((prev) => {
+      let next = repo.updatePersonalTask(prev, taskId, { schedule })
+      next = repo.addActivity(next, { taskId, actorId: currentUser.id, type: 'scheduled', detail })
+      if (task.reviewerId && notifyReviewer) {
+        const note = makeNotification(
+          task.reviewerId,
+          'scheduled',
+          taskId,
+          `${currentUser.name}さんが「${task.title}」の取り組み予定を登録しました（${detail}）`,
+        )
+        next = { ...next, notifications: [note, ...next.notifications] }
+      }
+      return next
+    })
+    if (notifyReviewer) notify(`予定登録：${currentUser.name}さん「${task.title}」→ ${detail}`)
+  }
+
   const requestReview = (taskId: ID, reviewerId: ID) => {
     const task = data.personalTasks.find((t) => t.id === taskId)
     if (!task) return
@@ -97,6 +170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         reviewStatus: 'requested',
         status: 'review',
       })
+      if (operatorId) next = repo.addActivity(next, { taskId, actorId: operatorId, type: 'review_requested' })
       if (reviewerId !== operatorId) {
         const note = makeNotification(
           reviewerId,
@@ -119,6 +193,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (status === 'approved') patch.status = 'done'
       else if (status === 'changes') patch.status = 'in_progress'
       let next = repo.updatePersonalTask(prev, taskId, patch)
+      if (operatorId && (status === 'approved' || status === 'changes')) {
+        next = repo.addActivity(next, {
+          taskId,
+          actorId: operatorId,
+          type: status === 'approved' ? 'approved' : 'changes',
+        })
+      }
       const msg =
         status === 'approved' ? 'レビューが承認されました' : status === 'changes' ? '修正依頼が来ました' : ''
       if (msg && task.ownerId !== operatorId) {
@@ -156,6 +237,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const notifyOwner = Boolean(task && task.ownerId !== currentUser.id)
     setData((prev) => {
       let next = repo.addComment(prev, { taskId, taskType, authorId: currentUser.id, body })
+      if (taskType === 'personal') {
+        next = repo.addActivity(next, { taskId, actorId: currentUser.id, type: 'comment', detail: body })
+      }
       if (task && notifyOwner) {
         const note = makeNotification(
           task.ownerId,
@@ -184,6 +268,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     selectUser,
     createUser,
     updateSlackWebhook,
+    createPersonalTask,
+    acknowledge,
+    scheduleTask,
     requestReview,
     setReviewStatus,
     toggleDiscussion,

@@ -11,6 +11,8 @@ import type {
   GoalStatus,
   TaskStatus,
   Period,
+  Activity,
+  ActivityType,
 } from '../types/models'
 import { newId } from '../lib/id'
 
@@ -124,10 +126,13 @@ export function deleteGoalTask(data: AppData, id: ID): AppData {
 
 // ---- PersonalTask ----
 export interface PersonalTaskInput {
+  id?: ID
   ownerId: ID
   goalTaskId?: ID
   title: string
   description?: string
+  deliverable?: string
+  outputLink?: string
   period: Period
   priority: Priority
   progress: number
@@ -140,11 +145,13 @@ export function addPersonalTask(data: AppData, input: PersonalTaskInput): AppDat
   // 自己レビューは無効化（依頼先＝担当者は不可）
   const reviewerId = input.reviewerId && input.reviewerId !== input.ownerId ? input.reviewerId : undefined
   const task: PersonalTask = {
-    id: newId(),
+    id: input.id ?? newId(),
     ownerId: input.ownerId,
     goalTaskId: input.goalTaskId,
     title: input.title,
     description: input.description,
+    deliverable: input.deliverable,
+    outputLink: input.outputLink,
     period: input.period,
     priority: input.priority,
     progress: input.progress,
@@ -152,10 +159,33 @@ export function addPersonalTask(data: AppData, input: PersonalTaskInput): AppDat
     reviewerId,
     reviewStatus: 'none',
     needsDiscussion: false,
+    acknowledged: false,
     createdAt: now,
     updatedAt: now,
   }
   return { ...data, personalTasks: [...data.personalTasks, task] }
+}
+
+// ---- Activity（行動履歴） ----
+export function addActivity(
+  data: AppData,
+  input: { taskId: ID; actorId: ID; type: ActivityType; detail?: string },
+): AppData {
+  const activity: Activity = {
+    id: newId(),
+    taskId: input.taskId,
+    actorId: input.actorId,
+    type: input.type,
+    detail: input.detail,
+    createdAt: Date.now(),
+  }
+  return { ...data, activities: [...data.activities, activity] }
+}
+
+export function activitiesFor(data: AppData, taskId: ID): Activity[] {
+  return data.activities
+    .filter((a) => a.taskId === taskId)
+    .sort((a, b) => a.createdAt - b.createdAt)
 }
 
 export function updatePersonalTask(data: AppData, id: ID, patch: Partial<PersonalTask>): AppData {

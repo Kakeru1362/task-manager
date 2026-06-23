@@ -10,7 +10,7 @@ import { TaskDetail } from '../components/TaskDetail'
 import type { ID } from '../types/models'
 
 export function TeamPage() {
-  const { data, apply } = useApp()
+  const { data, apply, createPersonalTask } = useApp()
   const [openProjectId, setOpenProjectId] = useState<ID | null>(null)
   const [addingProject, setAddingProject] = useState(false)
   const [projName, setProjName] = useState('')
@@ -124,7 +124,7 @@ export function TeamPage() {
           <TaskForm
             defaultGoalId={addTaskGoalId}
             onSubmit={(v) => {
-              apply((d) => repo.addPersonalTask(d, { ...v }))
+              createPersonalTask({ ...v })
               setAddTaskGoalId(null)
             }}
             onCancel={() => setAddTaskGoalId(null)}
