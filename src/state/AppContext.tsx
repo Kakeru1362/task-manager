@@ -29,6 +29,7 @@ interface AppContextValue {
   createUser: (name: string) => void
   updateSlackWebhook: (url: string) => void
   createPersonalTask: (input: repo.PersonalTaskInput) => void
+  notifyTask: (taskId: ID) => void
   acknowledge: (taskId: ID) => void
   scheduleTask: (taskId: ID, schedule: Schedule) => void
   requestReview: (taskId: ID, reviewerId: ID) => void
@@ -105,6 +106,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return next
     })
     if (notifyOwner) notify(`タスク追加：${currentUser.name} → ${owner?.name ?? ''}さん「${input.title}」`)
+  }
+
+  const notifyTask = (taskId: ID) => {
+    if (!currentUser) return
+    const task = data.personalTasks.find((t) => t.id === taskId)
+    if (!task) return
+    const owner = data.users.find((u) => u.id === task.ownerId)
+    if (task.ownerId !== currentUser.id) {
+      setData((prev) => {
+        const note = makeNotification(
+          task.ownerId,
+          'assigned',
+          taskId,
+          `${currentUser.name}さんが「${task.title}」の通知を送信しました`,
+        )
+        return { ...prev, notifications: [note, ...prev.notifications] }
+      })
+    }
+    notify(`通知送信：${currentUser.name} → ${owner?.name ?? ''}さん「${task.title}」`)
   }
 
   const acknowledge = (taskId: ID) => {
@@ -269,6 +289,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     createUser,
     updateSlackWebhook,
     createPersonalTask,
+    notifyTask,
     acknowledge,
     scheduleTask,
     requestReview,

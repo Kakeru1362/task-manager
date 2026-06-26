@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../state/AppContext'
-import * as repo from '../store/repositories'
+import { goalById } from '../store/repositories'
 import { sortPersonalTasks } from '../lib/sort'
-import { TaskCard } from '../components/TaskCard'
+import { TaskTable } from '../components/TaskTable'
+import { ProjectMemberNav, type Selection } from '../components/ProjectMemberNav'
 import { Modal } from '../components/Modal'
 import { TaskForm, type TaskFormValues } from '../components/TaskForm'
 import { TaskDetail } from '../components/TaskDetail'
-import { FilterBar, emptyFilters, type PersonalFilters } from '../components/FilterBar'
+import * as repo from '../store/repositories'
 import type { ID } from '../types/models'
 
 export function PersonalPage() {
   const { data, apply, createPersonalTask } = useApp()
-  const [filters, setFilters] = useState<PersonalFilters>(emptyFilters)
+  const [selection, setSelection] = useState<Selection>({ kind: 'all' })
+  const [discussionOnly, setDiscussionOnly] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
   const [openTaskId, setOpenTaskId] = useState<ID | null>(null)
   const [editing, setEditing] = useState(false)
@@ -19,19 +21,17 @@ export function PersonalPage() {
   const openTask = openTaskId ? (data.personalTasks.find((t) => t.id === openTaskId) ?? null) : null
 
   const visible = useMemo(() => {
+    const projectOf = (goalTaskId?: ID) => goalById(data, goalTaskId)?.projectId ?? null
     let list = data.personalTasks
-    if (filters.ownerId) list = list.filter((t) => t.ownerId === filters.ownerId)
-    if (filters.status) list = list.filter((t) => t.status === filters.status)
-    if (filters.discussionOnly) list = list.filter((t) => t.needsDiscussion)
-    if (filters.projectId) {
-      list = list.filter((t) => repo.goalById(data, t.goalTaskId)?.projectId === filters.projectId)
+    if (selection.kind === 'project') {
+      list = list.filter((t) => projectOf(t.goalTaskId) === selection.projectId)
+      if (selection.memberId !== 'all') list = list.filter((t) => t.ownerId === selection.memberId)
     }
+    if (discussionOnly) list = list.filter((t) => t.needsDiscussion)
     return sortPersonalTasks(list)
-  }, [data, filters])
+  }, [data, selection, discussionOnly])
 
-  // 司会が読み上げる総数はフィルタに依存しない（全体件数）
   const totalDiscussion = data.personalTasks.filter((t) => t.needsDiscussion).length
-  const visibleDiscussion = visible.filter((t) => t.needsDiscussion).length
 
   const addTask = (v: TaskFormValues) => {
     createPersonalTask({ ...v })
@@ -50,29 +50,33 @@ export function PersonalPage() {
 
   return (
     <div className="page">
-      <div className="page-toolbar">
-        <FilterBar filters={filters} onChange={setFilters} />
-        <button className="btn primary" onClick={() => setShowAdd(true)}>
-          ＋ 個人タスク
-        </button>
+      <div className="page-head">
+        <div>
+          <h1 className="page-title">個人タスク</h1>
+          <div className="page-sub">案件とメンバーで絞り込み。タスクを押すと進捗・コメントを管理できます</div>
+        </div>
+        <div className="row gap">
+          <button
+            className={`discussion-flag ${discussionOnly ? 'active' : ''}`}
+            onClick={() => setDiscussionOnly((v) => !v)}
+            aria-pressed={discussionOnly}
+          >
+            要相談だけ
+          </button>
+          <button className="btn primary" onClick={() => setShowAdd(true)}>
+            ＋ 個人タスク
+          </button>
+        </div>
       </div>
 
       {totalDiscussion > 0 && (
-        <div className="discussion-banner">
-          要相談 {totalDiscussion}件 — 定例会で討論しましょう
-          {visibleDiscussion !== totalDiscussion && <span className="small">（表示中 {visibleDiscussion}件）</span>}
-        </div>
+        <div className="discussion-banner">要相談 {totalDiscussion}件 — 定例会で討論しましょう</div>
       )}
 
-      {visible.length === 0 ? (
-        <div className="empty">条件に合うタスクがありません。</div>
-      ) : (
-        <div className="card-grid">
-          {visible.map((t) => (
-            <TaskCard key={t.id} task={t} onClick={() => setOpenTaskId(t.id)} />
-          ))}
-        </div>
-      )}
+      <div className="master-detail">
+        <ProjectMemberNav selection={selection} onSelect={setSelection} />
+        <TaskTable tasks={visible} onOpen={setOpenTaskId} />
+      </div>
 
       {showAdd && (
         <Modal title="個人タスクを追加" onClose={() => setShowAdd(false)} width={560}>
@@ -86,7 +90,7 @@ export function PersonalPage() {
             setOpenTaskId(null)
             setEditing(false)
           }}
-          width={560}
+          width={620}
         >
           {editing ? (
             <TaskForm initial={openTask} onSubmit={saveEdit} onCancel={() => setEditing(false)} />

@@ -130,6 +130,11 @@ export function seedData(): AppData {
       },
     ],
     notifications: [],
-    activities: [],
+    activities: [
+      { id: newId(), taskId: t1.id, actorId: tanaka.id, type: 'created', createdAt: now - 3_600_000 },
+      { id: newId(), taskId: t1.id, actorId: tanaka.id, type: 'review_requested', createdAt: now - 1_800_000 },
+      { id: newId(), taskId: t3.id, actorId: suzuki.id, type: 'created', createdAt: now - 7_200_000 },
+      { id: newId(), taskId: t3.id, actorId: suzuki.id, type: 'review_requested', createdAt: now - 600_000 },
+    ],
   }
 }
