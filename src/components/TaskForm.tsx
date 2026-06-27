@@ -108,7 +108,8 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
         <span>成果物（URL / 共有フォルダのパス・1行に1つ／任意）</span>
         <textarea
           value={outputsText}
-          rows={2}
+          rows={5}
+          className="output-input"
           placeholder={'https://docs.google.com/...\n/Box/共有/案件名/...'}
           onChange={(e) => setOutputsText(e.target.value)}
         />

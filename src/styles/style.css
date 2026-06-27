@@ -1279,6 +1279,10 @@ textarea {
 .output-list li {
   word-break: break-all;
 }
+.output-input {
+  min-height: 120px;
+  line-height: 1.6;
+}
 
 @media (max-width: 900px) {
   .master-detail {

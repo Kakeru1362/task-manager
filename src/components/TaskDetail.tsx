@@ -159,7 +159,8 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
           </ul>
         )}
         <textarea
-          rows={2}
+          rows={6}
+          className="output-input"
           value={outputsText}
           placeholder={'成果物を貼り付け（1行に1つ）\nhttps://docs.google.com/...\n/Box/共有/案件名/...'}
           onChange={(e) => {
