@@ -10,8 +10,8 @@ test('ログイン→案件をその場で展開→個人タスク作成', async
   await page.getByRole('button', { name: /A社案件/ }).click()
   await expect(page.getByText('Q3で新規リード50件獲得')).toBeVisible()
 
-  // ページ②へ切替、要相談バナーを確認
-  await page.getByRole('button', { name: '個人タスク', exact: true }).click()
+  // メンバー進捗タブへ切替、要相談バナーを確認
+  await page.getByRole('button', { name: 'メンバー進捗', exact: true }).click()
   await expect(page.locator('.discussion-banner')).toBeVisible()
 
   // 個人タスクを新規作成

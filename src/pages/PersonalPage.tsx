@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../state/AppContext'
 import { goalById } from '../store/repositories'
+import { byDeadline } from '../lib/sort'
 import { StatusBar } from '../components/StatusBar'
 import { TaskTable } from '../components/TaskTable'
 import { Modal } from '../components/Modal'
@@ -8,16 +9,6 @@ import { TaskForm, type TaskFormValues } from '../components/TaskForm'
 import { TaskDetail } from '../components/TaskDetail'
 import * as repo from '../store/repositories'
 import type { ID, PersonalTask } from '../types/models'
-
-// 期限が近い順（未設定は後ろ、最後は作成順）
-function byDeadline(a: PersonalTask, b: PersonalTask): number {
-  const ae = a.period.end
-  const be = b.period.end
-  if (ae && be) return ae < be ? -1 : ae > be ? 1 : 0
-  if (ae) return -1
-  if (be) return 1
-  return a.createdAt - b.createdAt
-}
 
 export function PersonalPage() {
   const { data, apply, createPersonalTask } = useApp()
@@ -79,7 +70,7 @@ export function PersonalPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">タスク進捗</h1>
+          <h1 className="page-title">メンバー進捗</h1>
           <div className="page-sub">案件ごとの進み具合と、みんなのタスクを管理できます（中は期限順）</div>
         </div>
         <div className="row gap">

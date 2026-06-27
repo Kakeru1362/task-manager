@@ -23,7 +23,15 @@ function OutputsCell({ outputs }: { outputs?: string[] }) {
   )
 }
 
-export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (id: ID) => void }) {
+export function TaskTable({
+  tasks,
+  onOpen,
+  hideOwner,
+}: {
+  tasks: PersonalTask[]
+  onOpen: (id: ID) => void
+  hideOwner?: boolean
+}) {
   const { data, notifyTask } = useApp()
 
   return (
@@ -31,7 +39,7 @@ export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (i
       <table className="task-table">
         <thead>
           <tr>
-            <th>担当</th>
+            {!hideOwner && <th>担当</th>}
             <th>タスク</th>
             <th>詳細（内容／納品形式）</th>
             <th>期限</th>
@@ -45,7 +53,7 @@ export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (i
         <tbody>
           {tasks.length === 0 ? (
             <tr>
-              <td colSpan={9} className="muted tt-empty">
+              <td colSpan={hideOwner ? 8 : 9} className="muted tt-empty">
                 タスクはありません
               </td>
             </tr>
@@ -58,14 +66,16 @@ export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (i
               const dueCls = isOverdue(due) ? 'overdue' : isDueSoon(due) ? 'soon' : ''
               return (
                 <tr key={t.id} className={t.needsDiscussion ? 'flagged' : ''}>
-                  <td>
-                    <span className="tt-owner">
-                      <span className="avatar sm" style={{ background: owner?.color }}>
-                        {owner?.name?.[0] ?? '?'}
+                  {!hideOwner && (
+                    <td>
+                      <span className="tt-owner">
+                        <span className="avatar sm" style={{ background: owner?.color }}>
+                          {owner?.name?.[0] ?? '?'}
+                        </span>
+                        {owner?.name ?? '—'}
                       </span>
-                      {owner?.name ?? '—'}
-                    </span>
-                  </td>
+                    </td>
+                  )}
                   <td>
                     <div className="tt-title">
                       {t.title}

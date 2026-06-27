@@ -30,6 +30,7 @@ interface AppContextValue {
   updateSlackWebhook: (url: string) => void
   createPersonalTask: (input: repo.PersonalTaskInput) => void
   notifyTask: (taskId: ID) => void
+  passTask: (taskId: ID, newOwnerId: ID) => void
   acknowledge: (taskId: ID) => void
   setTaskPeriod: (taskId: ID, period: Period) => void
   requestReview: (taskId: ID, reviewerId: ID) => void
@@ -125,6 +126,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
     }
     notify(`通知送信：${currentUser.name} → ${owner?.name ?? ''}さん「${task.title}」`)
+  }
+
+  const passTask = (taskId: ID, newOwnerId: ID) => {
+    if (!currentUser) return
+    const task = data.personalTasks.find((t) => t.id === taskId)
+    if (!task || newOwnerId === task.ownerId) return
+    const oldOwner = data.users.find((u) => u.id === task.ownerId)
+    const newOwner = data.users.find((u) => u.id === newOwnerId)
+    if (!newOwner) return
+    setData((prev) => {
+      let next = repo.updatePersonalTask(prev, taskId, {
+        ownerId: newOwnerId,
+        acknowledged: false,
+        // 新担当が確認者だと自己レビューになるためクリア
+        ...(task.reviewerId === newOwnerId ? { reviewerId: undefined } : {}),
+      })
+      next = repo.addActivity(next, {
+        taskId,
+        actorId: currentUser.id,
+        type: 'passed',
+        detail: `${oldOwner?.name ?? '—'}→${newOwner.name}`,
+      })
+      if (newOwnerId !== currentUser.id) {
+        const note = makeNotification(
+          newOwnerId,
+          'passed',
+          taskId,
+          `${currentUser.name}さんから「${task.title}」がパスされました（あなたの担当になりました）`,
+        )
+        next = { ...next, notifications: [note, ...next.notifications] }
+      }
+      return next
+    })
+    if (newOwnerId !== currentUser.id) notify(`パス：${currentUser.name} → ${newOwner.name}さん「${task.title}」`)
   }
 
   const acknowledge = (taskId: ID) => {
@@ -290,6 +325,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateSlackWebhook,
     createPersonalTask,
     notifyTask,
+    passTask,
     acknowledge,
     setTaskPeriod,
     requestReview,

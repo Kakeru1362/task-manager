@@ -8,6 +8,8 @@ function systemText(type: ActivityType, actor: string, detail?: string): string 
   switch (type) {
     case 'created':
       return `${actor}さんがタスクを追加しました`
+    case 'passed':
+      return `${actor}さんがタスクをパスしました${detail ? `（${detail}）` : ''}`
     case 'acknowledged':
       return `${actor}さんが受領しました（着手します）`
     case 'scheduled':

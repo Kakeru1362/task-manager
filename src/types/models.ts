@@ -91,6 +91,7 @@ export interface Comment {
 export type NotificationType =
   | 'due_soon'
   | 'assigned'
+  | 'passed'
   | 'acknowledged'
   | 'scheduled'
   | 'review_requested'
@@ -110,6 +111,7 @@ export interface AppNotification {
 
 export type ActivityType =
   | 'created'
+  | 'passed'
   | 'acknowledged'
   | 'scheduled'
   | 'progress'

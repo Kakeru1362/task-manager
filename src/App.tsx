@@ -3,12 +3,13 @@ import { AppProvider, useApp } from './state/AppContext'
 import { Login } from './pages/Login'
 import { TeamPage } from './pages/TeamPage'
 import { PersonalPage } from './pages/PersonalPage'
+import { MyTasksPage } from './pages/MyTasksPage'
 import { NotificationBell } from './components/NotificationBell'
 import { SettingsPanel } from './components/SettingsPanel'
 import { unreadCount } from './lib/notifications'
 import { useDismiss } from './lib/useDismiss'
 
-type Tab = 'team' | 'personal'
+type Tab = 'team' | 'progress' | 'mine'
 
 function Shell() {
   const { currentUser, data, selectUser } = useApp()
@@ -26,10 +27,13 @@ function Shell() {
         <div className="brand">チームタスク管理</div>
         <nav className="tabs">
           <button className={tab === 'team' ? 'active' : ''} onClick={() => setTab('team')}>
-            チーム / 案件
+            案件管理
           </button>
-          <button className={tab === 'personal' ? 'active' : ''} onClick={() => setTab('personal')}>
-            個人タスク
+          <button className={tab === 'progress' ? 'active' : ''} onClick={() => setTab('progress')}>
+            メンバー進捗
+          </button>
+          <button className={tab === 'mine' ? 'active' : ''} onClick={() => setTab('mine')}>
+            自分のタスク
           </button>
         </nav>
         <div className="header-right">
@@ -77,7 +81,9 @@ function Shell() {
           </div>
         </div>
       </header>
-      <main className="app-main">{tab === 'team' ? <TeamPage /> : <PersonalPage />}</main>
+      <main className="app-main">
+        {tab === 'team' ? <TeamPage /> : tab === 'progress' ? <PersonalPage /> : <MyTasksPage />}
+      </main>
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </div>
   )

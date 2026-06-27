@@ -26,3 +26,17 @@ export function comparePersonalTasks(a: PersonalTask, b: PersonalTask): number {
 export function sortPersonalTasks(tasks: PersonalTask[]): PersonalTask[] {
   return [...tasks].sort(comparePersonalTasks)
 }
+
+// 期限が近い順（未設定は後ろ、最後は作成順）
+export function byDeadline(a: PersonalTask, b: PersonalTask): number {
+  const ae = a.period.end
+  const be = b.period.end
+  if (ae && be) return ae < be ? -1 : ae > be ? 1 : 0
+  if (ae) return -1
+  if (be) return 1
+  return a.createdAt - b.createdAt
+}
+
+export function sortByDeadline(tasks: PersonalTask[]): PersonalTask[] {
+  return [...tasks].sort(byDeadline)
+}

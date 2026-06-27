@@ -23,6 +23,7 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
     currentUser,
     apply,
     notifyTask,
+    passTask,
     acknowledge,
     setTaskPeriod,
     requestReview,
@@ -35,6 +36,7 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
   const category = categoryById(data, goal?.categoryId)
   const reviewer = userById(data, task.reviewerId)
   const [reviewerSel, setReviewerSel] = useState<string>(task.reviewerId ?? '')
+  const [passSel, setPassSel] = useState('')
   const [pStart, setPStart] = useState(task.period.start ?? '')
   const [pEnd, setPEnd] = useState(task.period.end ?? '')
   const [outputsText, setOutputsText] = useState((task.outputs ?? []).join('\n'))
@@ -230,6 +232,34 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
             </button>
           </div>
         )}
+      </div>
+
+      {/* 担当をパス（他の人に渡す） */}
+      <div className="review-box">
+        <div className="comments-title">担当をパス</div>
+        <div className="row gap wrap">
+          <select value={passSel} onChange={(e) => setPassSel(e.target.value)}>
+            <option value="">渡す相手を選択</option>
+            {data.users
+              .filter((u) => u.id !== task.ownerId)
+              .map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+          </select>
+          <button
+            className="btn sm"
+            disabled={!passSel}
+            onClick={() => {
+              passTask(task.id, passSel)
+              setPassSel('')
+            }}
+          >
+            パスする
+          </button>
+          <span className="muted small">現在の担当：{owner?.name ?? '—'}</span>
+        </div>
       </div>
 
       <TaskFeed taskId={task.id} />
