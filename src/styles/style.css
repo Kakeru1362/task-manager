@@ -1113,6 +1113,72 @@ textarea {
   text-align: center;
   padding: 2rem;
 }
+.tt-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* 案件の進捗バー（ステータス内訳） */
+.project-status {
+  margin-left: auto;
+  flex: 1 1 320px;
+  max-width: 480px;
+}
+.status-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+}
+.sb-track {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #efe6da;
+}
+.sb-seg {
+  height: 100%;
+}
+.sb-todo {
+  background: #e0d3bf;
+}
+.sb-prog {
+  background: var(--primary);
+}
+.sb-review {
+  background: #d98b3a;
+}
+.sb-done {
+  background: #8a6f4f;
+}
+.sb-legend {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.sb-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.sb-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.sb-total {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--text);
+}
 
 /* 統合フィード（チャット風） */
 .feed {
@@ -1244,5 +1310,12 @@ textarea {
   }
   .dd-two {
     grid-template-columns: 1fr;
+  }
+  .project-row {
+    flex-wrap: wrap;
+  }
+  .project-status {
+    margin-left: 0;
+    max-width: none;
   }
 }

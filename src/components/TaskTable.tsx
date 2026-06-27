@@ -31,6 +31,7 @@ export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (i
       <table className="task-table">
         <thead>
           <tr>
+            <th>担当</th>
             <th>タスク</th>
             <th>詳細（内容／納品形式）</th>
             <th>期限</th>
@@ -44,18 +45,27 @@ export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (i
         <tbody>
           {tasks.length === 0 ? (
             <tr>
-              <td colSpan={8} className="muted tt-empty">
+              <td colSpan={9} className="muted tt-empty">
                 タスクはありません
               </td>
             </tr>
           ) : (
             tasks.map((t) => {
+              const owner = userById(data, t.ownerId)
               const reviewer = userById(data, t.reviewerId)
               const acts = activitiesFor(data, t.id).length
               const due = t.period.end
               const dueCls = isOverdue(due) ? 'overdue' : isDueSoon(due) ? 'soon' : ''
               return (
                 <tr key={t.id} className={t.needsDiscussion ? 'flagged' : ''}>
+                  <td>
+                    <span className="tt-owner">
+                      <span className="avatar sm" style={{ background: owner?.color }}>
+                        {owner?.name?.[0] ?? '?'}
+                      </span>
+                      {owner?.name ?? '—'}
+                    </span>
+                  </td>
                   <td>
                     <div className="tt-title">
                       {t.title}
