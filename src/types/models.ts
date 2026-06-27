@@ -63,7 +63,7 @@ export interface PersonalTask {
   title: string
   description?: string
   deliverable?: string // 納品形式（何をもって完了か）
-  outputLink?: string // 成果物リンク（作業中/完成物のURL）
+  outputs?: string[] // 成果物（URL や Box等の共有フォルダのパス。複数可）
   period: Period
   priority: Priority
   progress: number // 0-100 達成度

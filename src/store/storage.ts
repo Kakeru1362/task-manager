@@ -18,7 +18,14 @@ function normalizeAppData(raw: unknown): AppData {
     projects: asArray(r.projects),
     categories: asArray(r.categories),
     goalTasks: asArray(r.goalTasks),
-    personalTasks: asArray(r.personalTasks),
+    personalTasks: asArray<Record<string, unknown>>(r.personalTasks).map((t) => ({
+      ...t,
+      outputs: Array.isArray(t.outputs)
+        ? t.outputs
+        : typeof t.outputLink === 'string' && t.outputLink
+          ? [t.outputLink]
+          : [],
+    })) as AppData['personalTasks'],
     comments: asArray(r.comments),
     notifications: asArray(r.notifications),
     activities: asArray(r.activities),

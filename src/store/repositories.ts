@@ -132,7 +132,7 @@ export interface PersonalTaskInput {
   title: string
   description?: string
   deliverable?: string
-  outputLink?: string
+  outputs?: string[]
   period: Period
   priority: Priority
   progress: number
@@ -151,7 +151,7 @@ export function addPersonalTask(data: AppData, input: PersonalTaskInput): AppDat
     title: input.title,
     description: input.description,
     deliverable: input.deliverable,
-    outputLink: input.outputLink,
+    outputs: input.outputs ?? [],
     period: input.period,
     priority: input.priority,
     progress: input.progress,

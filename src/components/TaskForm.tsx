@@ -10,7 +10,7 @@ export interface TaskFormValues {
   title: string
   description?: string
   deliverable?: string
-  outputLink?: string
+  outputs?: string[]
   period: Period
   priority: Priority
   progress: number
@@ -30,7 +30,7 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
   const [title, setTitle] = useState(initial?.title ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [deliverable, setDeliverable] = useState(initial?.deliverable ?? '')
-  const [outputLink, setOutputLink] = useState(initial?.outputLink ?? '')
+  const [outputsText, setOutputsText] = useState((initial?.outputs ?? []).join('\n'))
   const [ownerId, setOwnerId] = useState<ID>(initial?.ownerId ?? currentUser?.id ?? data.users[0]?.id ?? '')
   const [goalTaskId, setGoalTaskId] = useState<string>(initial?.goalTaskId ?? defaultGoalId ?? '')
   const [priority, setPriority] = useState<Priority>(initial?.priority ?? 'medium')
@@ -71,7 +71,10 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
       title: title.trim(),
       description: description.trim() || undefined,
       deliverable: deliverable.trim() || undefined,
-      outputLink: outputLink.trim() || undefined,
+      outputs: outputsText
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean),
       period: { start: start || undefined, end: end || undefined },
       priority,
       progress,
@@ -102,12 +105,12 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
       </label>
 
       <label className="field">
-        <span>成果物リンク（任意）</span>
-        <input
-          type="url"
-          value={outputLink}
-          placeholder="https://（ドキュメント／スプシ等のURL）"
-          onChange={(e) => setOutputLink(e.target.value)}
+        <span>成果物（URL / 共有フォルダのパス・1行に1つ／任意）</span>
+        <textarea
+          value={outputsText}
+          rows={2}
+          placeholder={'https://docs.google.com/...\n/Box/共有/案件名/...'}
+          onChange={(e) => setOutputsText(e.target.value)}
         />
       </label>
 
@@ -164,11 +167,11 @@ export function TaskForm({ initial, defaultGoalId, onSubmit, onCancel }: TaskFor
 
       <div className="field-row">
         <label className="field">
-          <span>開始日</span>
+          <span>着手日</span>
           <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
         </label>
         <label className="field">
-          <span>締切日</span>
+          <span>完了予定日</span>
           <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
         </label>
       </div>

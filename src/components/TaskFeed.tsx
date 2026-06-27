@@ -11,7 +11,7 @@ function systemText(type: ActivityType, actor: string, detail?: string): string 
     case 'acknowledged':
       return `${actor}さんが受領しました（着手します）`
     case 'scheduled':
-      return `${actor}さんが取り組み予定を登録しました${detail ? `（${detail}）` : ''}`
+      return `${actor}さんが期間を登録しました${detail ? `（${detail}）` : ''}`
     case 'review_requested':
       return `${actor}さんが確認を依頼しました`
     case 'approved':

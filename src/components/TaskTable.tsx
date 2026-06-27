@@ -4,6 +4,25 @@ import { dueLabel, isOverdue, isDueSoon } from '../lib/date'
 import { StatusBadge } from './Badges'
 import type { PersonalTask, ID } from '../types/models'
 
+const isUrl = (s: string) => /^https?:\/\//.test(s)
+
+function OutputsCell({ outputs }: { outputs?: string[] }) {
+  if (!outputs || outputs.length === 0) return <span className="muted">—</span>
+  const firstUrl = outputs.find(isUrl)
+  return (
+    <span>
+      {firstUrl ? (
+        <a href={firstUrl} target="_blank" rel="noreferrer">
+          開く
+        </a>
+      ) : (
+        <span className="muted">{outputs.length}件</span>
+      )}
+      {outputs.length > 1 && <span className="muted small"> +{outputs.length - 1}</span>}
+    </span>
+  )
+}
+
 export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (id: ID) => void }) {
   const { data, notifyTask } = useApp()
 
@@ -65,13 +84,7 @@ export function TaskTable({ tasks, onOpen }: { tasks: PersonalTask[]; onOpen: (i
                     </button>
                   </td>
                   <td>
-                    {t.outputLink ? (
-                      <a href={t.outputLink} target="_blank" rel="noreferrer">
-                        開く
-                      </a>
-                    ) : (
-                      <span className="muted">—</span>
-                    )}
+                    <OutputsCell outputs={t.outputs} />
                   </td>
                   <td className="muted">{acts}</td>
                   <td>

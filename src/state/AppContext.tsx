@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { AppData, User, ID, ReviewStatus, TaskRefType, Schedule } from '../types/models'
+import type { AppData, User, ID, ReviewStatus, TaskRefType, Period } from '../types/models'
 import {
   loadData,
   saveData,
@@ -31,7 +31,7 @@ interface AppContextValue {
   createPersonalTask: (input: repo.PersonalTaskInput) => void
   notifyTask: (taskId: ID) => void
   acknowledge: (taskId: ID) => void
-  scheduleTask: (taskId: ID, schedule: Schedule) => void
+  setTaskPeriod: (taskId: ID, period: Period) => void
   requestReview: (taskId: ID, reviewerId: ID) => void
   setReviewStatus: (taskId: ID, status: ReviewStatus) => void
   toggleDiscussion: (taskId: ID) => void
@@ -152,27 +152,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (notifyReviewer) notify(`受領：${currentUser.name}さんが「${task.title}」に着手します`)
   }
 
-  const scheduleTask = (taskId: ID, schedule: Schedule) => {
+  const setTaskPeriod = (taskId: ID, period: Period) => {
     if (!currentUser) return
     const task = data.personalTasks.find((t) => t.id === taskId)
     if (!task) return
-    const detail = `${schedule.date}${schedule.startTime ? ' ' + schedule.startTime : ''}`
+    const detail = `${period.start ?? '—'} 〜 ${period.end ?? '—'}`
     const notifyReviewer = Boolean(task.reviewerId && task.reviewerId !== currentUser.id)
     setData((prev) => {
-      let next = repo.updatePersonalTask(prev, taskId, { schedule })
+      let next = repo.updatePersonalTask(prev, taskId, { period })
       next = repo.addActivity(next, { taskId, actorId: currentUser.id, type: 'scheduled', detail })
       if (task.reviewerId && notifyReviewer) {
         const note = makeNotification(
           task.reviewerId,
           'scheduled',
           taskId,
-          `${currentUser.name}さんが「${task.title}」の取り組み予定を登録しました（${detail}）`,
+          `${currentUser.name}さんが「${task.title}」の期間を登録しました（${detail}）`,
         )
         next = { ...next, notifications: [note, ...next.notifications] }
       }
       return next
     })
-    if (notifyReviewer) notify(`予定登録：${currentUser.name}さん「${task.title}」→ ${detail}`)
+    if (notifyReviewer) notify(`期間登録：${currentUser.name}さん「${task.title}」→ ${detail}`)
   }
 
   const requestReview = (taskId: ID, reviewerId: ID) => {
@@ -291,7 +291,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     createPersonalTask,
     notifyTask,
     acknowledge,
-    scheduleTask,
+    setTaskPeriod,
     requestReview,
     setReviewStatus,
     toggleDiscussion,

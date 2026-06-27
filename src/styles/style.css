@@ -1202,6 +1202,17 @@ textarea {
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.7rem;
 }
+.output-list {
+  margin: 0 0 0.5rem;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+}
+.output-list li {
+  word-break: break-all;
+}
 
 @media (max-width: 900px) {
   .master-detail {

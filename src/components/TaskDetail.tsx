@@ -15,6 +15,8 @@ interface TaskDetailProps {
   onDelete: () => void
 }
 
+const isUrl = (s: string) => /^https?:\/\//.test(s)
+
 export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
   const {
     data,
@@ -22,7 +24,7 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
     apply,
     notifyTask,
     acknowledge,
-    scheduleTask,
+    setTaskPeriod,
     requestReview,
     setReviewStatus,
     toggleDiscussion,
@@ -33,30 +35,29 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
   const category = categoryById(data, goal?.categoryId)
   const reviewer = userById(data, task.reviewerId)
   const [reviewerSel, setReviewerSel] = useState<string>(task.reviewerId ?? '')
-  const [schedDate, setSchedDate] = useState(task.schedule?.date ?? '')
-  const [schedStart, setSchedStart] = useState(task.schedule?.startTime ?? '')
-  const [schedEnd, setSchedEnd] = useState(task.schedule?.endTime ?? '')
+  const [pStart, setPStart] = useState(task.period.start ?? '')
+  const [pEnd, setPEnd] = useState(task.period.end ?? '')
+  const [outputsText, setOutputsText] = useState((task.outputs ?? []).join('\n'))
+  const [savedOutputs, setSavedOutputs] = useState(false)
 
   const isReviewer = Boolean(currentUser && task.reviewerId === currentUser.id)
   const isOwner = Boolean(currentUser && task.ownerId === currentUser.id)
   const due = task.period.end
   const dueClass = isOverdue(due) ? 'overdue' : isDueSoon(due) ? 'soon' : ''
 
-  const saveSchedule = () => {
-    if (!schedDate) return
-    scheduleTask(task.id, {
-      date: schedDate,
-      startTime: schedStart || undefined,
-      endTime: schedEnd || undefined,
-    })
+  const savePeriod = () => {
+    setTaskPeriod(task.id, { start: pStart || undefined, end: pEnd || undefined })
   }
-  const calUrl = schedDate
-    ? googleCalendarUrl(task.title, task.description ?? '', {
-        date: schedDate,
-        startTime: schedStart || undefined,
-        endTime: schedEnd || undefined,
-      })
-    : ''
+  const calUrl = googleCalendarUrl(task.title, task.description ?? '', pStart || undefined, pEnd || undefined)
+
+  const saveOutputs = () => {
+    const outputs = outputsText
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    apply((d) => updatePersonalTask(d, task.id, { outputs }))
+    setSavedOutputs(true)
+  }
 
   return (
     <div className="task-detail">
@@ -89,12 +90,13 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
         </div>
       </div>
 
-      {/* 期限・確認者・通知送信 */}
+      {/* 期間サマリ・確認者・通知送信 */}
       <div className="dd-line">
         <div className="dd-pill">
-          <span className="muted small">期限</span>
+          <span className="muted small">期間（着手〜完了）</span>
           <span>
-            {formatDate(task.period.end)} {due && <span className={`due ${dueClass}`}>{dueLabel(due)}</span>}
+            {formatDate(task.period.start)} 〜 {formatDate(task.period.end)}{' '}
+            {due && <span className={`due ${dueClass}`}>{dueLabel(due)}</span>}
           </span>
         </div>
         <div className="dd-pill">
@@ -106,42 +108,68 @@ export function TaskDetail({ task, onEdit, onDelete }: TaskDetailProps) {
         </button>
       </div>
 
-      {/* 取り組み時間・カレンダー登録 */}
+      {/* 期間の編集＋カレンダー */}
       <div className="review-box">
-        <div className="comments-title">取り組み時間</div>
+        <div className="comments-title">期間（着手日〜完了予定日）</div>
         <div className="row gap wrap">
-          <input type="date" aria-label="予定日" value={schedDate} onChange={(e) => setSchedDate(e.target.value)} />
-          <input type="time" aria-label="開始" value={schedStart} onChange={(e) => setSchedStart(e.target.value)} />
+          <label className="inline-status">
+            <span className="muted small">着手</span>
+            <input type="date" value={pStart} onChange={(e) => setPStart(e.target.value)} />
+          </label>
           <span className="muted small">〜</span>
-          <input type="time" aria-label="終了" value={schedEnd} onChange={(e) => setSchedEnd(e.target.value)} />
-          <button className="btn sm" onClick={saveSchedule} disabled={!schedDate}>
-            予定を保存
+          <label className="inline-status">
+            <span className="muted small">完了</span>
+            <input type="date" value={pEnd} onChange={(e) => setPEnd(e.target.value)} />
+          </label>
+          <button className="btn sm" onClick={savePeriod} disabled={!pStart && !pEnd}>
+            期間を保存
           </button>
           {calUrl && (
             <a className="btn warn sm" href={calUrl} target="_blank" rel="noreferrer">
-              カレンダー登録
+              カレンダーに追加
             </a>
           )}
         </div>
       </div>
 
-      {/* 達成度・成果物・完了／再検討 */}
-      <div className="detail-grid">
-        <div className="detail-cell">
-          <span className="muted small">達成度</span>
-          <ProgressBar value={task.progress} />
-        </div>
-        <div className="detail-cell">
-          <span className="muted small">成果物</span>
-          <div>
-            {task.outputLink ? (
-              <a href={task.outputLink} target="_blank" rel="noreferrer">
-                {task.outputLink}
-              </a>
-            ) : (
-              '—'
-            )}
-          </div>
+      {/* 達成度 */}
+      <div className="detail-cell">
+        <span className="muted small">達成度</span>
+        <ProgressBar value={task.progress} />
+      </div>
+
+      {/* 成果物：作成時にも完了後にも貼り付け可（URL/共有フォルダのパス・複数） */}
+      <div className="review-box">
+        <div className="comments-title">成果物</div>
+        {task.outputs && task.outputs.length > 0 && (
+          <ul className="output-list">
+            {task.outputs.map((o, i) => (
+              <li key={i}>
+                {isUrl(o) ? (
+                  <a href={o} target="_blank" rel="noreferrer">
+                    {o}
+                  </a>
+                ) : (
+                  <span>{o}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        <textarea
+          rows={2}
+          value={outputsText}
+          placeholder={'成果物を貼り付け（1行に1つ）\nhttps://docs.google.com/...\n/Box/共有/案件名/...'}
+          onChange={(e) => {
+            setOutputsText(e.target.value)
+            setSavedOutputs(false)
+          }}
+        />
+        <div className="row gap">
+          <button className="btn primary sm" onClick={saveOutputs}>
+            成果物を保存
+          </button>
+          {savedOutputs && <span className="saved-text">保存しました</span>}
         </div>
       </div>
 
